@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Treinador Vai com Tudo — DelRio (LMS Offline)</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#121824;
+      --card2:#0f1520;
+      --text:#e8eef7;
+      --muted:#a8b3c7;
+      --accent:#7c3aed;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --line:#243047;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 600px at 30% -10%, rgba(124,58,237,.35), transparent 50%),
+                  radial-gradient(900px 500px at 110% 20%, rgba(34,197,94,.18), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:20px 18px 8px;
+      border-bottom:1px solid var(--line);
+      position:sticky; top:0;
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,20,.72);
+      z-index:5;
+    }
+    .wrap{max-width:1180px; margin:0 auto; padding:0 16px 28px;}
+    .row{display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; align-items:start;}
+    @media (max-width: 980px){ .row{grid-template-columns:1fr} header{position:static} }
+    h1{margin:0; font-size:18px; letter-spacing:.2px}
+    .sub{margin:6px 0 0; color:var(--muted); font-size:13px}
+    .pillbar{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap}
+    .pill{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      padding:8px 10px; border-radius:999px;
+      font-size:12px; color:var(--muted);
+    }
+    .pill b{color:var(--text)}
+    .card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-radius:14px;
+      padding:14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.22);
+    }
+    .card h2{margin:0 0 10px; font-size:14px}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width: 680px){ .grid2{grid-template-columns:1fr} }
+
+    .btn{
+      width:100%;
+      text-align:left;
+      border:1px solid var(--line);
+      background: rgba(18,24,36,.82);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s transform, .15s background;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(18,24,36,1);}
+    .btn small{display:block; color:var(--muted); margin-top:3px}
+
+    .btn2{
+      border-radius:12px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      background: rgba(124,58,237,.18);
+      color:var(--text);
+      cursor:pointer;
+    }
+    .btn2.secondary{background: rgba(255,255,255,.06)}
+    .btn2.danger{background: rgba(239,68,68,.18)}
+    .btn2.ok{background: rgba(34,197,94,.16)}
+    .btn2:active{transform: translateY(1px);}
+
+    .badge{display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; border:1px solid var(--line); color:var(--muted);}
+    .badge.ok{border-color: rgba(34,197,94,.35); color: rgba(34,197,94,.95)}
+    .badge.warn{border-color: rgba(245,158,11,.35); color: rgba(245,158,11,.95)}
+    .badge.bad{border-color: rgba(239,68,68,.35); color: rgba(239,68,68,.95)}
+
+    .hr{height:1px; background:var(--line); margin:12px 0}
+
+    textarea, input, select{
+      width:100%;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(15,21,32,.86);
+      color:var(--text);
+      padding:10px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    textarea{min-height:120px; resize:vertical}
+
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+
+    .panelTitle{display:flex; align-items:center; justify-content:space-between; gap:10px}
+
+    .log{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12px;
+      color: var(--text);
+      background: rgba(0,0,0,.25);
+      border:1px solid var(--line);
+      padding:10px;
+      border-radius:12px;
+      min-height:130px;
+      white-space:pre-wrap;
+    }
+
+    .hint{color:var(--muted); font-size:12px; margin-top:8px}
+
+    .scorebar{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+    .scorebar .s{
+      padding:8px 10px; border-radius:12px; border:1px solid var(--line);
+      background: rgba(15,21,32,.75);
+      min-width:150px;
+    }
+    .s .t{color:var(--muted); font-size:12px}
+    .s .n{font-size:18px; margin-top:2px}
+
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 0}
+    .tab{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      padding:8px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      color:var(--muted);
+      user-select:none;
+    }
+    .tab.active{
+      background: rgba(124,58,237,.22);
+      color: var(--text);
+      border-color: rgba(124,58,237,.4);
+    }
+    .tabPanel{display:none; margin-top:10px}
+    .tabPanel.active{display:block}
+
+    .scriptGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .scriptCard{
+      border:1px solid var(--line);
+      background: rgba(15,21,32,.75);
+      border-radius:12px;
+      padding:10px;
+    }
+    .scriptCard .title{
+      display:flex; justify-content:space-between; align-items:center; gap:8px;
+      margin-bottom:6px;
+    }
+    .scriptCard .title b{font-size:13px}
+    .scriptText{
+      color: var(--text);
+      font-size:13px;
+      line-height:1.35;
+      white-space:pre-wrap;
+    }
+    .scriptBtns{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+
+    .quizWrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .qCard{
+      border:1px solid var(--line);
+      background: rgba(15,21,32,.75);
+      border-radius:12px;
+      padding:10px;
+    }
+    .qHead{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    }
+    .qTitle{font-size:13px; margin:0}
+    .qMeta{color:var(--muted); font-size:11px; margin-top:2px}
+    .qOptions{margin-top:8px; display:grid; gap:6px}
+    .qOpt{
+      display:flex; gap:8px; align-items:flex-start;
+      padding:8px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background: rgba(0,0,0,.14);
+      cursor:pointer;
+    }
+    .qOpt input{width:auto; margin-top:2px}
+    .qOpt:hover{border-color: rgba(124,58,237,.5)}
+    .qFeedback{
+      margin-top:8px;
+      color: var(--muted);
+      font-size:12px;
+      white-space:pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <h1>Treinador Vai com Tudo — DelRio</h1>
+    <div class="sub">Treinamento prático (simulações + biblioteca de scripts + quiz avançado). Funciona offline.</div>
+    <div class="pillbar">
+      <div class="pill"><b>Foco:</b> 6 passos do atendimento</div>
+      <div class="pill"><b>Modo:</b> Simulação + Scripts</div>
+      <div class="pill"><b>Resultado:</b> Score + Plano de melhora</div>
+      <div class="pill"><b>Disciplina:</b> 15 min/dia</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" style="margin-top:14px;">
+  <div class="row">
+
+    <!-- COLUNA PRINCIPAL -->
+    <section class="card">
+      <div class="panelTitle">
+        <h2>Simulação de Atendimento</h2>
+        <span class="badge ok" id="modeBadge">Modo: Treino</span>
+      </div>
+
+      <div class="grid2" style="margin-top:8px;">
+        <button class="btn" onclick="startScenario('novo')">
+          1) Cliente Nova (começando do zero)
+          <small>Treina abertura + sondagem + apresentação do modelo.</small>
+        </button>
+        <button class="btn" onclick="startScenario('recorrente')">
+          2) Cliente Recorrente (reposição + performance)
+          <small>Treina sondagem profunda + mix + plano de venda.</small>
+        </button>
+        <button class="btn" onclick="startScenario('objecoes')">
+          3) Cliente com Objeções
+          <small>Treina empatia + argumentação + solução.</small>
+        </button>
+        <button class="btn" onclick="startScenario('empreendedora')">
+          4) Empreendedora Forte (ticket alto)
+          <small>Treina proposta, valor e fechamento sem pressão.</small>
+        </button>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="panelTitle">
+        <h2>Contexto do Cliente</h2>
+        <span class="badge warn" id="stepBadge">Passo: 1/6</span>
+      </div>
+
+      <div class="log" id="clientBox">Clique em um cenário acima para começar.</div>
+
+      <div class="hr"></div>
+
+      <h2>Resposta do Vendedor</h2>
+      <textarea id="sellerAnswer" placeholder="Digite aqui exatamente o que você falaria (sem floreio)."></textarea>
+
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn2" onclick="evaluateAnswer()">Avaliar Resposta</button>
+        <button class="btn2 secondary" onclick="nextStep()">Próximo Passo</button>
+        <button class="btn2 ok" onclick="openScriptsForCurrentStep()">Abrir Scripts do Passo</button>
+        <button class="btn2 danger" onclick="resetSession()">Reiniciar Sessão</button>
+      </div>
+
+      <div class="hint" id="hint">
+        Dica: “Posso ajudar?” é proibido. Primeiro conexão, depois método.
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="panelTitle">
+        <h2>Feedback do Treinador</h2>
+        <span class="badge" id="qualityBadge">Aguardando</span>
+      </div>
+      <div class="log" id="coachBox">Quando você clicar em “Avaliar”, eu dou nota e correção.</div>
+
+    </section>
+
+    <!-- COLUNA LATERAL -->
+    <aside class="card">
+      <div class="panelTitle">
+        <h2>Score da Sessão</h2>
+        <span class="badge ok" id="totalBadge">Total: 0/60</span>
+      </div>
+
+      <div class="scorebar">
+        <div class="s"><div class="t">1) Abertura</div><div class="n" id="sc1">0</div></div>
+        <div class="s"><div class="t">2) Sondagem</div><div class="n" id="sc2">0</div></div>
+        <div class="s"><div class="t">3) Solução</div><div class="n" id="sc3">0</div></div>
+        <div class="s"><div class="t">4) Objeções</div><div class="n" id="sc4">0</div></div>
+        <div class="s"><div class="t">5) Fechamento</div><div class="n" id="sc5">0</div></div>
+        <div class="s"><div class="t">6) Pós-venda</div><div class="n" id="sc6">0</div></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="panelTitle">
+        <h2>Centro de Treinamento</h2>
+        <span class="badge warn" id="centerBadge">Scripts + Quiz</span>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="scripts" onclick="switchTab('scripts')">Biblioteca de Scripts</div>
+        <div class="tab" data-tab="quiz" onclick="switchTab('quiz')">Quiz (20)</div>
+      </div>
+
+      <!-- SCRIPTS -->
+      <div class="tabPanel active" id="tab-scripts">
+        <div class="hint">Use como referência. O objetivo é dominar e adaptar, não recitar como robô.</div>
+
+        <div style="margin-top:10px;">
+          <select id="scriptCategory" onchange="renderScripts()">
+            <option value="1">Passo 1 — Abertura</option>
+            <option value="2">Passo 2 — Sondagem</option>
+            <option value="3">Passo 3 — Solução</option>
+            <option value="4">Passo 4 — Objeções</option>
+            <option value="5">Passo 5 — Fechamento</option>
+            <option value="6">Passo 6 — Pós-venda</option>
+          </select>
+        </div>
+
+        <div class="scriptGrid" id="scriptGrid" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- QUIZ -->
+      <div class="tabPanel" id="tab-quiz">
+        <div class="hint">Faça o quiz 2x por semana. Meta: 16/20 ou mais.</div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn2 secondary" onclick="resetQuiz()">Limpar respostas</button>
+          <button class="btn2" onclick="gradeQuizBig()">Corrigir Quiz</button>
+        </div>
+
+        <div class="log" id="quizBox" style="margin-top:10px; min-height:88px;">Responda e clique em “Corrigir Quiz”.</div>
+
+        <div class="quizWrap" id="quizWrap" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <h2>Plano de Melhora (automático)</h2>
+      <div class="log" id="planBox">Finalize ao menos 3 passos para gerar um plano de melhora.</div>
+
+      <div class="hint">
+        Se quiser elevar a régua sem drama: quem bater 45/60 + 16/20 vira “destaque do dia”.
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<script>
+  // ====== BASE DO TREINO (6 passos) ======
+  const steps = [
+    { id: 1, name: "Abertura", must: ["acolhimento", "contato visual", "pergunta inicial aberta", "evitar 'posso ajudar'"] },
+    { id: 2, name: "Sondagem", must: ["perguntas abertas", "mapear objetivo", "identificar perfil", "conduzir para atendimento"] },
+    { id: 3, name: "Solução", must: ["solução antes do produto", "modelo de negócio", "prova social", "mix best-sellers"] },
+    { id: 4, name: "Objeções", must: ["escuta", "empatia", "argumento", "solução personalizada", "confirmar entendimento"] },
+    { id: 5, name: "Fechamento", must: ["resumo de benefícios", "convite à ação", "confirmação", "celebração"] },
+    { id: 6, name: "Pós-venda", must: ["agradecer", "acompanhar", "proatividade", "convite / pertencimento"] }
+  ];
+
+  const scenarios = {
+    novo: [
+      "Cliente entra e olha a vitrine por 5 segundos. Ela parece curiosa, mas insegura. Faça a ABERTURA.",
+      "Ela diz: “Tô só olhando, nunca comprei aqui.” Faça a SONDAGEM com perguntas abertas.",
+      "Ela conta que quer renda extra, mas trabalha o dia todo. Faça a SOLUÇÃO (modelo + kit inicial).",
+      "Ela diz: “Tenho medo de não vender.” LIDE COM A OBJEÇÃO.",
+      "Ela gostou do kit, mas está hesitando. Faça o FECHAMENTO.",
+      "Finalize com o PÓS-VENDA (o que você envia hoje)."
+    ],
+    recorrente: [
+      "Cliente recorrente entra e fala: “Vim repor, mas mês passado foi fraco.” Faça a ABERTURA.",
+      "Faça a SONDAGEM: o que impediu ela de decolar? (sem interrogatório, mas profundo).",
+      "Faça a SOLUÇÃO: reposição dos mais vendidos + ação pra girar estoque parado.",
+      "Ela diz: “Meus clientes reclamaram do preço.” LIDE COM A OBJEÇÃO.",
+      "Conduza o FECHAMENTO com naturalidade e segurança.",
+      "PÓS-VENDA: quando e como você acompanha o resultado dela?"
+    ],
+    objecoes: [
+      "Cliente entra séria e direta: “Tô sem tempo.” Faça a ABERTURA rápida e elegante.",
+      "SONDAGEM: descubra objetivo em 2 perguntas abertas (máximo).",
+      "SOLUÇÃO: ofereça uma proposta objetiva (mix enxuto + margem).",
+      "Objeção: “Não tenho dinheiro agora.” Trate com empatia e alternativa.",
+      "FECHAMENTO: conduza para uma decisão sem pressionar.",
+      "PÓS-VENDA: crie um follow-up que traga ela de volta."
+    ],
+    empreendedora: [
+      "Cliente diz: “Tenho loja e compro volume.” Faça a ABERTURA (autoridade sem arrogância).",
+      "SONDAGEM: mapeie público, canal, giro e ticket em perguntas abertas.",
+      "SOLUÇÃO: proposta com mix, margem e lógica de reposição.",
+      "Objeção: “Quero condições melhores.” Argumente sem terceirizar desconto.",
+      "FECHAMENTO: alinhe próximo passo (cadastro, separação, pagamento, frete).",
+      "PÓS-VENDA: plano de acompanhamento Top Client."
+    ]
+  };
+
+  // ====== BIBLIOTECA DE SCRIPTS ======
+  // (curtos, aplicáveis, prontos para adaptar)
+  const scriptLibrary = {
+    1: [
+      { title: "Abertura — Cliente nova (acolhida + nome)", text:
+`“Oi! Seja bem-vinda. Que bom te receber hoje! Eu sou _____. Como você se chama?”
+“E me diz: o que te trouxe hoje na DelRio?”`},
+      { title: "Abertura — Cliente recorrente (sentimos sua falta)", text:
+`“Oi! Seja bem-vinda, sentimos sua falta. Quer água ou café?”
+“Você veio repor ou veio buscar novidade hoje?”`},
+      { title: "Abertura — Cliente apressada (2 frases)", text:
+`“Seja bem-vinda! Prometo ser objetiva.”
+“Você veio pra consumo ou pra revenda? Qual seu objetivo hoje?”`},
+      { title: "Abertura — Digital (WhatsApp)", text:
+`“Oi, bom dia! Que bom receber seu contato 😊”
+“Me conta: você compra pra você ou quer revender pra ganhar renda extra?”`}
+    ],
+    2: [
+      { title: "Sondagem — Pergunta-mãe (objetivo)", text:
+`“Como posso te ajudar hoje?”
+“Qual é o seu objetivo com essa compra: consumo, renda extra ou revenda mesmo?”`},
+      { title: "Sondagem — Mapa de canal (onde ela vende)", text:
+`“Onde você costuma vender/mostrar pras pessoas? Trabalho, condomínio, internet…?”
+“Hoje você vende mais no WhatsApp, Instagram ou presencial?”`},
+      { title: "Sondagem — Público e giro", text:
+`“Pra quem você vende mais: mulheres, homens, infantil?”
+“Quais tamanhos giram melhor no seu público?”`},
+      { title: "Sondagem — Recorrente que não decola", text:
+`“O que travou suas vendas no mês passado: mix, preço, canal ou falta de ação?”
+“Qual item você sentiu que ficou parado?”`}
+    ],
+    3: [
+      { title: "Solução — Kit inicial (seguro e fácil de girar)", text:
+`“Pelo seu perfil, a melhor forma é começar com um mix fácil de vender.”
+“Eu monto um kit com best-sellers + 1 item de margem boa, e ajusto com você no giro.”`},
+      { title: "Solução — Prova social (curta, sem palestra)", text:
+`“A DelRio tem décadas de mercado e padrão alto de qualidade.”
+“Isso te dá confiança pra vender: produto bom gira, e giro vira lucro.”`},
+      { title: "Solução — Mix para data sazonal", text:
+`“Vamos montar um mix pensando na próxima data do calendário.”
+“Você repõe best-sellers e coloca 1 família pra puxar ticket e margem.”`},
+      { title: "Solução — Empreendedora (proposta objetiva)", text:
+`“Me dá seu foco: giro rápido, margem ou novidade?”
+“Eu proponho um mix com base nisso + uma lógica de reposição pra não faltar.”`}
+    ],
+    4: [
+      { title: "Objeção — ‘Não tenho dinheiro agora’", text:
+`“Entendo totalmente. Vamos começar dentro do valor que você fica confortável.”
+“Eu monto um kit enxuto e fácil de girar — você cresce com o lucro.”`},
+      { title: "Objeção — ‘Tenho medo de não vender’", text:
+`“Esse medo é comum no início. A gente reduz risco com mix certo.”
+“Você começa pelos best-sellers e eu te acompanho no giro e nas ações.”`},
+      { title: "Objeção — ‘Já vendo outra marca’", text:
+`“Ótimo — isso significa que você já tem cliente e canal.”
+“A DelRio entra como complemento: produto com aceitação e margem forte.”`},
+      { title: "Objeção — ‘Preço está alto’", text:
+`“Entendo. O ponto aqui é valor percebido: qualidade que justifica e gira.”
+“Vamos focar em itens com melhor aceitação e margem, e ajustar a oferta por canal.”`},
+      { title: "Objeção — ‘Quero condição melhor’ (sem terceirizar desconto)", text:
+`“Vamos construir a melhor condição dentro da política e pelo caminho certo: mix + volume + recorrência.”
+“Me diz o tamanho do seu giro e eu desenho a proposta mais inteligente.”`}
+    ],
+    5: [
+      { title: "Fechamento — Pergunta de decisão (duas opções)", text:
+`“Você prefere começar com esse kit enxuto ou quer que eu ajuste o mix agora?”
+“Posso registrar seu cadastro?”`},
+      { title: "Fechamento — Recorrente (compromisso de plano)", text:
+`“Fechamos reposição dos mais vendidos + 1 família pra puxar ticket?”
+“Quer que eu já organize por tamanho pra facilitar sua venda?”`},
+      { title: "Fechamento — Cliente hesitante (segurança)", text:
+`“Faz sentido pra você do jeito que montamos?”
+“Se estiver confortável, eu fecho agora e te explico os próximos passos.”`},
+      { title: "Fechamento — Celebração", text:
+`“Boa escolha. Esse mix gira bem.”
+“Conta comigo: eu vou acompanhar sua evolução e ajustar com você.”`}
+    ],
+    6: [
+      { title: "Pós-venda — Mensagem no mesmo dia", text:
+`“Oi, _____! Obrigada por hoje 😊”
+“Qualquer dúvida me chama. Ainda hoje te mando um resumo do mix e uma sugestão de ação.”`},
+      { title: "Pós-venda — D+2 (checagem de giro)", text:
+`“Oi, _____! Como foi a saída das primeiras peças?”
+“Quer que eu te ajude com uma mensagem pronta pro WhatsApp pra acelerar?”`},
+      { title: "Pós-venda — D+7 (planejamento da próxima compra)", text:
+`“Oi! Vamos olhar o que girou mais e o que ficou parado?”
+“Assim a próxima reposição vem cirúrgica e você cresce sem encalhe.”`},
+      { title: "Pós-venda — Cliente top (relacionamento)", text:
+`“Quero te parabenizar pelo desempenho. O que você precisa da loja pra vender ainda mais?”
+“Vamos agendar sua próxima reposição pra não faltar best-seller.”`}
+    ]
+  };
+
+  // ====== QUIZ GRANDE (20) ======
+  // Estrutura: { id, q, options:[...], answerIndex, explain }
+  const quiz = [
+    { id:1, q:"No atendimento DelRio, qual é a prioridade da ABERTURA?", options:[
+      "Apresentar promoções e descontos",
+      "Criar conexão e acolhimento antes de falar de venda",
+      "Levar direto ao caixa para cadastro",
+      "Explicar política de troca"
+    ], answerIndex:1, explain:"A abertura cria ambiência comercial: acolhimento + conexão. Venda vem depois."},
+
+    { id:2, q:"Qual frase deve ser evitada no início do atendimento?", options:[
+      "Seja bem-vinda! Que bom te receber.",
+      "Como você se chama?",
+      "Posso ajudar?",
+      "O que te trouxe hoje?"
+    ], answerIndex:2, explain:"Evitar “Posso ajudar?”; use acolhimento e pergunta aberta."},
+
+    { id:3, q:"Sondagem bem feita usa principalmente:", options:[
+      "Perguntas fechadas (sim/não)",
+      "Perguntas abertas",
+      "Somente apresentação de produto",
+      "Somente tabela de preço"
+    ], answerIndex:1, explain:"Perguntas abertas fazem a cliente falar e revelam objetivo, perfil e contexto."},
+
+    { id:4, q:"Qual NÃO é um perfil citado na sondagem do manual?", options:[
+      "Consumidora final",
+      "Busca renda extra",
+      "Revendedora",
+      "Franqueada"
+    ], answerIndex:3, explain:"O manual trabalha consumidora, renda extra, revendedora e empreendedora — não franquia."},
+
+    { id:5, q:"No passo de SOLUÇÃO, o vendedor deve:", options:[
+      "Oferecer produto antes de entender necessidade",
+      "Oferecer solução para a demanda e só depois produto/mix",
+      "Evitar falar sobre margem",
+      "Focar apenas em itens de saldo"
+    ], answerIndex:1, explain:"Solução primeiro: modelo de negócio, mix, segurança e suporte."},
+
+    { id:6, q:"Ao lidar com objeções, o primeiro movimento correto é:", options:[
+      "Contradizer a cliente para impor autoridade",
+      "Ignorar e mudar de assunto",
+      "Ouvir com atenção e validar com empatia",
+      "Oferecer desconto imediatamente"
+    ], answerIndex:2, explain:"Objeção é oportunidade: escuta + empatia + solução."},
+
+    { id:7, q:"No FECHAMENTO, a postura correta é:", options:[
+      "Pressionar para decidir rápido",
+      "Evitar perguntas de decisão",
+      "Conduzir de forma natural com convite à ação",
+      "Encerrar sem confirmar entendimento"
+    ], answerIndex:2, explain:"Fechamento é consequência do método: resumo + convite à ação + segurança."},
+
+    { id:8, q:"PÓS-VENDA tem como foco principal:", options:[
+      "Somente pedir indicação",
+      "Fidelização e acompanhamento",
+      "Somente oferecer promoção do mês",
+      "Somente cobrar pagamento"
+    ], answerIndex:1, explain:"Pós-venda reforça experiência, fideliza e abre oportunidades futuras."},
+
+    { id:9, q:"Qual prática é INEGOCIÁVEL (não pode acontecer)?", options:[
+      "Agradecer via WhatsApp",
+      "Cliente testar produto",
+      "Receber PIX em conta pessoal",
+      "Fazer pós-venda D+2"
+    ], answerIndex:2, explain:"PIX em conta pessoal é proibido."},
+
+    { id:10, q:"Trocas: qual é o limite máximo permitido (controle comercial)?", options:[
+      "10% da compra",
+      "20% da compra",
+      "30% da compra",
+      "50% da compra"
+    ], answerIndex:2, explain:"Limite de troca: até 30% (conforme regra comercial)."},
+
+    { id:11, q:"Cliente é considerada ATIVA até:", options:[
+      "30 dias",
+      "60 dias",
+      "90 dias",
+      "120 dias"
+    ], answerIndex:2, explain:"Até o 90º dia é ativo; a partir do 91º, inativo."},
+
+    { id:12, q:"Qual KPI mede quantas peças, em média, vão por atendimento?", options:[
+      "TMC",
+      "PA",
+      "Reativados",
+      "Cadastros"
+    ], answerIndex:1, explain:"PA = Peças por Atendimento."},
+
+    { id:13, q:"Qual KPI mede valor médio por cliente?", options:[
+      "TMC",
+      "TMA",
+      "PA",
+      "Itens"
+    ], answerIndex:0, explain:"TMC = Ticket Médio por Cliente."},
+
+    { id:14, q:"O que é o método FCA?", options:[
+      "Foco, Constância e Agressividade",
+      "Fatos, Causas e Ações",
+      "Fluxo de Caixa Ajustado",
+      "Fidelização, Conversão e Atendimento"
+    ], answerIndex:1, explain:"FCA = Fatos, Causas e Ações."},
+
+    { id:15, q:"Uma boa prática no salão de vendas é:", options:[
+      "Ficar parado esperando cliente",
+      "Se manter ocupado organizando, sem perder prontidão",
+      "Conversar em grupinhos",
+      "Usar celular pessoal no atendimento"
+    ], answerIndex:1, explain:"Ocupação produtiva sinaliza padrão e prontidão."},
+
+    { id:16, q:"No visual merchandising, a vitrine deve ser:", options:[
+      "Atualizada, limpa e alinhada à orientação de trade",
+      "Mantida por meses se estiver bonita",
+      "Cheia de peças para “mostrar variedade”",
+      "Sem relação com campanhas"
+    ], answerIndex:0, explain:"Vitrine é disciplina: limpa e atualizada conforme orientação."},
+
+    { id:17, q:"Na política de troca, qual item normalmente NÃO é aceito (por higiene/padrão)?", options:[
+      "Lingerie branca (com exceções em kits)",
+      "Peça com etiqueta intacta",
+      "Produto sem sinais de uso",
+      "Peça com NF dentro do prazo"
+    ], answerIndex:0, explain:"Lingerie branca é restrita (com exceções citadas para kits)."},
+
+    { id:18, q:"Em objeção “Tenho medo de não vender”, a melhor abordagem é:", options:[
+      "Dizer que é fácil e ignorar o medo",
+      "Montar um mix fácil de girar e oferecer acompanhamento",
+      "Oferecer só produtos caros para aumentar margem",
+      "Encerrar o atendimento"
+    ], answerIndex:1, explain:"Reduz risco com mix certo + acompanhamento."},
+
+    { id:19, q:"No fechamento, qual pergunta é mais efetiva?", options:[
+      "Você vai levar, né?",
+      "Quer ajuda?",
+      "Você prefere começar com o kit inicial ou ajustar o mix agora?",
+      "Se não levar hoje, perde"
+    ], answerIndex:2, explain:"Fechamento por escolha (duas opções) aumenta decisão sem pressão."},
+
+    { id:20, q:"O que vendemos de verdade na DelRio?", options:[
+      "Somente moda íntima",
+      "Somente preço baixo",
+      "Um modelo de negócio + transformação via produto",
+      "Somente promoções e brindes"
+    ], answerIndex:2, explain:"DelRio vende modelo de negócio e autonomia, ancorado em produto."}
+  ];
+
+  // ====== ESTADO ======
+  let currentScenario = null;
+  let currentStep = 1;
+  let scores = [0,0,0,0,0,0];
+  let evalCount = 0;
+
+  // ====== ELEMENTOS ======
+  const clientBox = document.getElementById("clientBox");
+  const coachBox = document.getElementById("coachBox");
+  const stepBadge = document.getElementById("stepBadge");
+  const modeBadge = document.getElementById("modeBadge");
+  const qualityBadge = document.getElementById("qualityBadge");
+  const totalBadge = document.getElementById("totalBadge");
+  const planBox = document.getElementById("planBox");
+  const scriptGrid = document.getElementById("scriptGrid");
+  const scriptCategory = document.getElementById("scriptCategory");
+
+  // ====== INIT ======
+  renderScripts();
+  renderQuiz();
+
+  function switchTab(tab){
+    document.querySelectorAll('.tab').forEach(t=>{
+      t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    document.querySelectorAll('.tabPanel').forEach(p=>{
+      p.classList.toggle('active', p.id === 'tab-' + tab);
+    });
+  }
+
+  function openScriptsForCurrentStep(){
+    switchTab('scripts');
+    scriptCategory.value = String(currentStep);
+    renderScripts();
+  }
+
+  function startScenario(type){
+    currentScenario = type;
+    currentStep = 1;
+    modeBadge.textContent = "Modo: " + (type === "novo" ? "Cliente Nova" :
+                                      type === "recorrente" ? "Cliente Recorrente" :
+                                      type === "objecoes" ? "Objeções" : "Empreendedora");
+    clientBox.textContent = scenarios[type][0];
+    stepBadge.textContent = "Passo: 1/6";
+    coachBox.textContent = "Escreva sua fala e clique em “Avaliar Resposta”.";
+    setBadge("qualityBadge", "Aguardando", "");
+    document.getElementById("sellerAnswer").value = "";
+  }
+
+  function resetSession(){
+    currentScenario = null;
+    currentStep = 1;
+    scores = [0,0,0,0,0,0];
+    evalCount = 0;
+    clientBox.textContent = "Clique em um cenário acima para começar.";
+    coachBox.textContent = "Quando você clicar em “Avaliar”, eu dou nota e correção.";
+    stepBadge.textContent = "Passo: 1/6";
+    modeBadge.textContent = "Modo: Treino";
+    setBadge("qualityBadge", "Aguardando", "");
+    updateScoreUI();
+    planBox.textContent = "Finalize ao menos 3 passos para gerar um plano de melhora.";
+    document.getElementById("sellerAnswer").value = "";
+  }
+
+  function nextStep(){
+    if(!currentScenario){
+      coachBox.textContent = "Escolha um cenário primeiro.";
+      return;
+    }
+    if(currentStep >= 6){
+      coachBox.textContent = "Sessão finalizada. Você pode reiniciar ou escolher outro cenário.";
+      generatePlan();
+      return;
+    }
+    currentStep += 1;
+    clientBox.textContent = scenarios[currentScenario][currentStep-1];
+    stepBadge.textContent = "Passo: " + currentStep + "/6";
+    setBadge("qualityBadge", "Aguardando", "");
+    document.getElementById("sellerAnswer").value = "";
+    coachBox.textContent = "Agora responda para o passo " + currentStep + " (" + steps[currentStep-1].name + ").";
+  }
+
+  function evaluateAnswer(){
+    if(!currentScenario){
+      coachBox.textContent = "Escolha um cenário e responda primeiro.";
+      return;
+    }
+    const answer = (document.getElementById("sellerAnswer").value || "").trim();
+    if(answer.length < 10){
+      coachBox.textContent = "Muito curto. Escreva como você falaria com a cliente.";
+      setBadge("qualityBadge","Muito fraco","bad");
+      return;
+    }
+
+    const step = steps[currentStep-1];
+    const lc = answer.toLowerCase();
+
+    let pts = 0;
+    let hits = [];
+    const rules = getRulesForStep(step.id);
+
+    for(const r of rules){
+      if(r.test(lc)){ pts += r.points; hits.push("✔ " + r.ok); }
+    }
+
+    // Penalidades comuns
+    let penalties = [];
+    if(lc.includes("posso ajudar") || lc.includes("quer ajuda")){
+      pts -= 3; penalties.push("✘ Evite “posso ajudar?” — use acolhimento + pergunta aberta.");
+    }
+    if(step.id === 1 && (lc.includes("desconto") || lc.includes("promoção"))){
+      pts -= 2; penalties.push("✘ Abertura não começa vendendo. Primeiro conexão.");
+    }
+
+    pts = Math.max(0, Math.min(10, pts));
+
+    const idx = step.id - 1;
+    scores[idx] = Math.max(scores[idx], pts);
+
+    evalCount += 1;
+    updateScoreUI();
+
+    let grade = pts >= 8 ? "Forte" : pts >= 6 ? "Bom" : pts >= 4 ? "Fraco" : "Muito fraco";
+    let badgeClass = pts >= 8 ? "ok" : pts >= 6 ? "warn" : "bad";
+    setBadge("qualityBadge", grade + " (" + pts + "/10)", badgeClass);
+
+    const must = step.must.map(x => "• " + x).join("\n");
+    const misses = buildMisses(step.id, lc);
+
+    coachBox.textContent =
+      "Passo " + step.id + " — " + step.name + "\n\n" +
+      "O que você acertou:\n" + (hits.length ? hits.join("\n") : "• Poucos sinais do método.\n") + "\n\n" +
+      (penalties.length ? "Alertas:\n" + penalties.join("\n") + "\n\n" : "") +
+      (misses.length ? "O que faltou (corrija agora):\n" + misses.join("\n") + "\n\n" : "") +
+      "Checklist do passo:\n" + must + "\n\n" +
+      "Script de referência (adapte ao seu jeito):\n" + quickRewriteHint(step.id);
+
+    if(evalCount >= 3){ generatePlan(); }
+  }
+
+  function getRulesForStep(id){
+    const R = (re, points, ok) => ({ test: (s)=>re.test(s), points, ok });
+
+    if(id === 1){
+      return [
+        R(/seja bem[- ]vinda|bem[- ]vinda|que bom te (ver|receber)|prazer/, 3, "Acolhimento claro"),
+        R(/como você se chama|qual seu nome/, 2, "Conexão com nome"),
+        R(/como posso te ajudar|o que te traz/, 3, "Pergunta aberta (objetivo)"),
+        R(/café|água/, 2, "Oferta de acolhida (água/café)")
+      ];
+    }
+    if(id === 2){
+      return [
+        R(/o que te traz|como posso te ajudar|qual seu objetivo/, 3, "Mapeou objetivo"),
+        R(/onde você vende|como você vende|trabalha com|whats|instagram|porta a porta|condomínio/, 3, "Mapeou canal/rotina"),
+        R(/quem são seus clientes|pra quem você vende|seu público/, 2, "Mapeou público"),
+        R(/me acompanhe|vou te mostrar|vamos dar uma volta|deixa eu te apresentar/, 2, "Condução/intenção")
+      ];
+    }
+    if(id === 3){
+      return [
+        R(/modelo de negócio|renda extra|empreender|lucrar|margem/, 4, "Foco em solução (negócio)"),
+        R(/kit|mix|mais vendidos|best/, 3, "Sugestão de mix/kit"),
+        R(/história|60 anos|fabricante|qualidade/, 2, "Prova social/autoridade"),
+        R(/posso montar|eu te ajudo|acompanho|vamos juntas/, 1, "Suporte")
+      ];
+    }
+    if(id === 4){
+      return [
+        R(/entendo|faz sentido|claro|compreendo/, 3, "Empatia explícita"),
+        R(/que tal|podemos|alternativa|vamos montar|começar/, 3, "Apresentou alternativa"),
+        R(/margem|giro|fácil de vender|começar pequeno|mix/, 2, "Argumento prático"),
+        R(/ficou claro|faz sentido pra você|posso seguir/, 2, "Confirmou entendimento")
+      ];
+    }
+    if(id === 5){
+      return [
+        R(/resumindo|então|o melhor pra você|benefício/, 2, "Resumo/benefícios"),
+        R(/prefere|vamos (fechar|registrar|cadastrar)|posso registrar|posso fechar/, 4, "Convite à ação"),
+        R(/alguma dúvida|tá confortável|tudo certo/, 2, "Confirmação"),
+        R(/parabéns|vai dar certo|conta comigo|vamos juntas/, 2, "Celebração/segurança")
+      ];
+    }
+    if(id === 6){
+      return [
+        R(/obrigad|agradeço|foi um prazer/, 3, "Agradecimento"),
+        R(/daqui a|amanhã|d\+|vou te chamar|te mando/, 3, "Follow-up com timing"),
+        R(/qualquer dúvida|estou aqui|me chama/, 2, "Suporte"),
+        R(/treinamento|grupo|novidades|promoções|evento/, 2, "Engajamento/pertencimento")
+      ];
+    }
+    return [];
+  }
+
+  function buildMisses(id, lc){
+    const out = [];
+    if(id === 1){
+      if(!/(seja bem[- ]vinda|bem[- ]vinda|que bom)/.test(lc)) out.push("• Falta acolhimento explícito (seja bem-vinda + que bom receber).");
+      if(!/(como você se chama|qual seu nome)/.test(lc)) out.push("• Falta trazer o nome (conexão rápida).");
+      if(!/(como posso te ajudar|o que te traz)/.test(lc)) out.push("• Falta pergunta aberta (objetivo).");
+    }
+    if(id === 2){
+      if(!/(o que te traz|como posso te ajudar|qual seu objetivo)/.test(lc)) out.push("• Falta mapear objetivo com pergunta aberta.");
+      if(!/(onde você vende|como você vende|trabalha com|whats|instagram|porta a porta|condomínio)/.test(lc)) out.push("• Falta mapear canal/rotina (onde ela interage com pessoas).");
+      if(!/(me acompanhe|vou te mostrar|vamos dar uma volta|deixa eu te apresentar)/.test(lc)) out.push("• Falta condução (mini tour) com intenção.");
+    }
+    if(id === 3){
+      if(!/(modelo de negócio|renda extra|lucrar|margem|empreender)/.test(lc)) out.push("• Falta vender o MODELO/solução (não só produto).");
+      if(!/(kit|mix|mais vendidos|best)/.test(lc)) out.push("• Falta montar um kit/mix para facilitar a primeira venda.");
+    }
+    if(id === 4){
+      if(!/(entendo|faz sentido|compreendo)/.test(lc)) out.push("• Falta validar o sentimento (empatia explícita).");
+      if(!/(que tal|podemos|alternativa|vamos montar|começar)/.test(lc)) out.push("• Falta alternativa prática (kit menor / mix fácil / plano).");
+    }
+    if(id === 5){
+      if(!/(prefere|vamos fechar|posso registrar|cadastrar|posso fechar)/.test(lc)) out.push("• Falta pergunta de fechamento (convite à ação).");
+      if(!/(alguma dúvida|tá confortável|tudo certo)/.test(lc)) out.push("• Falta checagem final de segurança.");
+    }
+    if(id === 6){
+      if(!/(obrigad|foi um prazer|agradeço)/.test(lc)) out.push("• Falta agradecimento claro.");
+      if(!/(daqui a|amanhã|d\+|vou te chamar|te mando)/.test(lc)) out.push("• Falta follow-up com timing (hoje / D+2 / D+7).");
+    }
+    return out;
+  }
+
+  function quickRewriteHint(id){
+    if(id === 1) return "“Seja bem-vinda! Que bom te receber. Como você se chama? E o que te trouxe hoje?”";
+    if(id === 2) return "“Como posso te ajudar hoje? Você compra pra consumo ou pra revenda? Onde você costuma vender/mostrar?”";
+    if(id === 3) return "“Pelo seu perfil, o melhor é começar com um mix fácil de girar. Eu monto com você e ajustamos conforme suas vendas.”";
+    if(id === 4) return "“Entendo. Vamos começar dentro do valor que você fica confortável, com itens fáceis de vender, e eu te acompanho no giro.”";
+    if(id === 5) return "“Você prefere começar com esse kit enxuto ou quer ajustar o mix agora? Posso registrar seu cadastro?”";
+    if(id === 6) return "“Obrigada por hoje! Ainda hoje te mando mensagem com o resumo. Daqui a 2 dias eu te chamo pra ver o giro.”";
+    return "";
+  }
+
+  function setBadge(id, text, cls){
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "badge" + (cls ? " " + cls : "");
+  }
+
+  function updateScoreUI(){
+    document.getElementById("sc1").textContent = scores[0];
+    document.getElementById("sc2").textContent = scores[1];
+    document.getElementById("sc3").textContent = scores[2];
+    document.getElementById("sc4").textContent = scores[3];
+    document.getElementById("sc5").textContent = scores[4];
+    document.getElementById("sc6").textContent = scores[5];
+    const total = scores.reduce((a,b)=>a+b,0);
+    totalBadge.textContent = "Total: " + total + "/60";
+  }
+
+  function generatePlan(){
+    const total = scores.reduce((a,b)=>a+b,0);
+    const weak = scores
+      .map((v,i)=>({v,i,name:steps[i].name}))
+      .sort((a,b)=>a.v-b.v)
+      .slice(0,2);
+
+    const plan =
+      "Resumo:\n" +
+      "- Total atual: " + total + "/60\n" +
+      "- Piores etapas: " + weak.map(w=> w.name + " ("+w.v+"/10)").join(", ") + "\n\n" +
+      "Plano de 7 dias (15 min/dia):\n" +
+      "Dia 1-2: Treinar " + weak[0].name + " (reescrever 5 respostas e comparar com Scripts).\n" +
+      "Dia 3-4: Treinar " + weak[1].name + " (simular 5 clientes diferentes).\n" +
+      "Dia 5: Rodar cenário “Objeções” completo.\n" +
+      "Dia 6: Rodar cenário “Recorrente” completo.\n" +
+      "Dia 7: Prova: 1 cenário aleatório + meta 45/60.\n\n" +
+      "Regra: se o score travar, volte ao básico: pergunta aberta + solução antes do produto.";
+
+    planBox.textContent = plan;
+  }
+
+  // ====== SCRIPTS ======
+  function renderScripts(){
+    const cat = Number(scriptCategory.value);
+    const items = scriptLibrary[cat] || [];
+    scriptGrid.innerHTML = "";
+
+    items.forEach((it, idx)=>{
+      const el = document.createElement("div");
+      el.className = "scriptCard";
+      el.innerHTML = `
+        <div class="title">
+          <b>${escapeHtml(it.title)}</b>
+          <span class="badge warn">Passo ${cat}</span>
+        </div>
+        <div class="scriptText" id="scriptText-${cat}-${idx}">${escapeHtml(it.text)}</div>
+        <div class="scriptBtns">
+          <button class="btn2 secondary" onclick="copyScript(${cat},${idx})">Copiar</button>
+          <button class="btn2" onclick="insertScript(${cat},${idx})">Inserir na Resposta</button>
+        </div>
+      `;
+      scriptGrid.appendChild(el);
+    });
+  }
+
+  function copyScript(cat, idx){
+    const text = scriptLibrary[cat][idx].text;
+    navigator.clipboard?.writeText(text).then(()=>{
+      toast(`Script copiado (Passo ${cat}).`);
+    }).catch(()=>{
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast(`Script copiado (Passo ${cat}).`);
+    });
+  }
+
+  function insertScript(cat, idx){
+    const text = scriptLibrary[cat][idx].text;
+    const box = document.getElementById("sellerAnswer");
+    box.value = (box.value ? box.value + "\n\n" : "") + text;
+    box.focus();
+    toast("Script inserido na resposta. Agora adapte ao seu jeito.");
+  }
+
+  function toast(msg){
+    // toast simples no quizBox
+    const qb = document.getElementById("quizBox");
+    const prev = qb.textContent;
+    qb.textContent = msg;
+    setTimeout(()=>{ qb.textContent = prev; }, 1800);
+  }
+
+  // ====== QUIZ ======
+  function renderQuiz(){
+    const wrap = document.getElementById("quizWrap");
+    wrap.innerHTML = "";
+
+    quiz.forEach((q, i)=>{
+      const card = document.createElement("div");
+      card.className = "qCard";
+      card.innerHTML = `
+        <div class="qHead">
+          <div>
+            <p class="qTitle"><b>${q.id}.</b> ${escapeHtml(q.q)}</p>
+            <div class="qMeta">Selecione 1 alternativa</div>
+          </div>
+          <span class="badge">Quiz</span>
+        </div>
+        <div class="qOptions">
+          ${q.options.map((opt, oi)=>`
+            <label class="qOpt">
+              <input type="radio" name="q-${q.id}" value="${oi}">
+              <div>${escapeHtml(opt)}</div>
+            </label>
+          `).join("")}
+        </div>
+        <div class="qFeedback" id="qfb-${q.id}"></div>
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
+  function resetQuiz(){
+    quiz.forEach(q=>{
+      document.querySelectorAll(`input[name="q-${q.id}"]`).forEach(r=> r.checked = false);
+      const fb = document.getElementById(`qfb-${q.id}`);
+      if(fb) fb.textContent = "";
+    });
+    document.getElementById("quizBox").textContent = "Respostas limpas. Agora refaça o quiz.";
+  }
+
+  function gradeQuizBig(){
+    let correct = 0;
+    let answered = 0;
+
+    quiz.forEach(q=>{
+      const picked = document.querySelector(`input[name="q-${q.id}"]:checked`);
+      const fb = document.getElementById(`qfb-${q.id}`);
+      if(!picked){
+        fb.textContent = "⚠️ Não respondida.";
+        return;
+      }
+      answered++;
+      const val = Number(picked.value);
+      if(val === q.answerIndex){
+        correct++;
+        fb.textContent = "✅ Correta. " + q.explain;
+      } else {
+        fb.textContent = "❌ Incorreta. Resposta certa: “" + q.options[q.answerIndex] + "”.\n" + q.explain;
+      }
+    });
+
+    const score = `${correct}/20`;
+    const pct = Math.round((correct/20)*100);
+    const level = correct >= 18 ? "Elite" : correct >= 16 ? "Forte" : correct >= 13 ? "Ok" : "Abaixo do padrão";
+
+    document.getElementById("quizBox").textContent =
+      `Resultado do Quiz: ${score} (${pct}%) — Nível: ${level}\n` +
+      `Respondidas: ${answered}/20\n\n` +
+      (correct < 16
+        ? "Ação: refaça o quiz amanhã e revise a Biblioteca de Scripts (principalmente os passos onde você errou)."
+        : "Ação: mantenha — agora o jogo é consistência e execução no salão."
+      );
+  }
+
+  // ====== HELPERS ======
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+</script>
+</body>
+</html>
