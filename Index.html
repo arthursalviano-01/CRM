@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Assistente de Treinamento DelRio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lato:wght@300;400;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --wine:#5B2D8E;--wine2:#7B3DB8;--wine3:#9B5DD8;
+  --gold:#c8960e;--gold2:#e8b830;--gold3:#f5d060;
+  --dark:#080610;--dark2:#0e0a1a;--dark3:#160f24;
+  --text:#ddd8f0;--muted:#9080b0;--border:rgba(91,45,142,.25);
+}
+body{background:var(--dark);color:var(--text);font-family:'Lato',sans-serif;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(91,45,142,.4);border-radius:2px}
+
+/* ── API KEY GATE ── */
+#screen-apikey{align-items:center;justify-content:center;padding:32px 20px}
+.apikey-inner{position:relative;z-index:1;width:100%;max-width:400px;text-align:center}
+.apikey-note{background:rgba(91,45,142,.15);border:1px solid rgba(91,45,142,.3);border-radius:12px;padding:16px;margin:20px 0;text-align:left;font-size:13px;color:var(--muted);line-height:1.65}
+.apikey-note a{color:var(--gold);text-decoration:none}
+.apikey-note a:hover{text-decoration:underline}
+.apikey-warn{font-size:11px;color:#9060b0;margin-top:14px;line-height:1.6}
+
+.screen{display:none;flex-direction:column;min-height:100vh}
+.screen.active{display:flex}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 20% 10%,rgba(58,27,94,.5) 0%,transparent 55%),
+             radial-gradient(ellipse at 80% 90%,rgba(91,45,142,.25) 0%,transparent 55%),
+             radial-gradient(ellipse at 50% 50%,rgba(200,150,14,.04) 0%,transparent 70%)}
+
+/* ── LOGO ── */
+.logo-mark{display:inline-flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:20px}
+.logo-del{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;letter-spacing:8px;color:var(--gold);font-style:italic}
+.logo-rio{font-family:'Playfair Display',serif;font-size:52px;font-weight:900;letter-spacing:6px;line-height:1;text-transform:uppercase;
+  background:linear-gradient(135deg,#fff 0%,#e0d4f0 40%,var(--gold3) 70%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-tagline{font-size:9px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:2px}
+.logo-divline{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:6px auto}
+
+/* ── SHARED ── */
+.field-label{display:block;font-size:10px;letter-spacing:4px;color:var(--muted);margin-bottom:10px;text-align:left;text-transform:uppercase}
+.field-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:15px;outline:none;font-family:'Lato',sans-serif;transition:border-color .2s}
+.field-input:focus{border-color:rgba(91,45,142,.6)}
+.field-input::placeholder{color:#4a3a6a}
+.btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--wine),var(--wine2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Lato',sans-serif;transition:opacity .2s;margin-top:12px}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed}
+.btn-primary:not(:disabled):hover{opacity:.9}
+.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.btn-back{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--muted);font-size:18px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.btn-back:hover{background:rgba(255,255,255,.08);color:#fff}
+.top-sub{font-size:10px;letter-spacing:4px;color:var(--muted);text-transform:uppercase}
+.top-title{font-family:'Playfair Display',serif;font-size:20px;color:#fff}
+
+/* ── INTRO ── */
+#screen-intro{align-items:center;justify-content:center;padding:32px 20px}
+.intro-inner{position:relative;z-index:1;width:100%;max-width:420px;text-align:center}
+.intro-subtitle{font-size:10px;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:28px}
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0}
+.mode-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px 16px;cursor:pointer;text-align:center;transition:all .25s;position:relative;overflow:hidden}
+.mode-card::before{content:'';position:absolute;inset:0;border-radius:14px;opacity:0;transition:opacity .25s}
+.mode-card.wine::before{background:linear-gradient(135deg,rgba(58,27,94,.4),rgba(91,45,142,.2))}
+.mode-card.gold-c::before{background:linear-gradient(135deg,rgba(200,150,14,.2),rgba(232,184,48,.1))}
+.mode-card:hover::before{opacity:1}
+.mode-card:hover{transform:translateY(-3px);border-color:rgba(200,150,14,.3)}
+.mc-icon{font-size:30px;margin-bottom:10px}
+.mc-title{font-family:'Playfair Display',serif;font-size:15px;color:#fff;font-weight:700;margin-bottom:4px}
+.mc-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.hint{color:#5a4a7a;font-size:11px;margin-top:14px;line-height:1.6}
+.hint strong{color:#7a60a0}
+
+/* ── CHOOSE ── */
+#screen-choose{padding:0}
+.choose-inner{position:relative;z-index:1;width:100%;max-width:520px;margin:0 auto;padding:24px 20px 40px}
+.section-desc{color:var(--muted);font-size:13px;line-height:1.65;margin-bottom:20px}
+.persona-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;cursor:pointer;display:flex;gap:14px;align-items:flex-start;transition:all .2s;margin-bottom:10px;width:100%}
+.persona-card:hover{background:rgba(58,27,94,.25);border-color:rgba(200,150,14,.3);transform:translateX(4px)}
+.persona-icon{width:48px;height:48px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.persona-info{flex:1;min-width:0;text-align:left}
+.persona-header{display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap}
+.persona-name{font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700}
+.persona-age{font-size:11px;color:var(--muted)}
+.badge-dif{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:1px;margin-left:auto}
+.persona-type{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700}
+.persona-desc{font-size:13px;color:#b0a0d0;line-height:1.5;margin-bottom:4px}
+.persona-challenge{font-size:11px;color:#7a6a9a}
+
+/* ── QUIZ ── */
+#screen-quiz{padding:0}
+.quiz-inner{position:relative;z-index:1;width:100%;max-width:520px;margin:0 auto;padding:24px 20px 40px}
+.quiz-progress-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:16px 0 24px;overflow:hidden}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--wine2),var(--gold));border-radius:2px;transition:width .4s ease}
+.quiz-q-num{font-size:10px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.quiz-question{font-family:'Playfair Display',serif;font-size:18px;color:#fff;line-height:1.45;margin-bottom:6px}
+.quiz-category{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:22px}
+.quiz-options{display:flex;flex-direction:column;gap:10px}
+.quiz-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;color:var(--text);font-size:14px;font-family:'Lato',sans-serif;line-height:1.5;transition:all .2s}
+.quiz-opt:hover:not(:disabled){background:rgba(58,27,94,.3);border-color:rgba(200,150,14,.35);transform:translateX(3px)}
+.quiz-opt.correct{background:rgba(40,120,60,.2);border-color:rgba(60,180,80,.5);color:#80f0a0}
+.quiz-opt.wrong{background:rgba(150,30,30,.2);border-color:rgba(220,60,60,.4);color:#f08080}
+.quiz-opt.reveal{background:rgba(40,120,60,.1);border-color:rgba(60,180,80,.3);color:#60c070}
+.quiz-opt:disabled{cursor:not-allowed}
+.quiz-feedback{margin-top:16px;padding:14px 16px;border-radius:12px;font-size:13px;line-height:1.6;display:none}
+.quiz-feedback.show{display:block}
+.quiz-feedback.ok{background:rgba(40,120,60,.15);border:1px solid rgba(60,180,80,.25);color:#90e0a0}
+.quiz-feedback.err{background:rgba(150,30,30,.15);border:1px solid rgba(220,60,60,.25);color:#f0a0a0}
+.btn-next{margin-top:16px;width:100%;padding:14px;background:linear-gradient(135deg,var(--wine),var(--wine2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Lato',sans-serif;display:none;transition:opacity .2s}
+.btn-next:hover{opacity:.9}
+.quiz-result{text-align:center;padding:20px 0}
+.result-score-ring{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 20px;border:3px solid}
+.result-score-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;line-height:1}
+.result-score-denom{font-size:12px;letter-spacing:2px}
+.result-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:8px}
+.result-msg{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px}
+.result-breakdown{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left}
+.rb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.rb-row:last-child{border-bottom:none}
+.rb-label{color:var(--muted)}
+.rb-val{font-weight:700}
+.btn-quiz-again{width:100%;padding:13px;background:linear-gradient(135deg,var(--wine),var(--wine2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Lato',sans-serif;margin-bottom:10px}
+.btn-quiz-home{width:100%;padding:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--muted);font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Lato',sans-serif}
+
+/* ── CHAT ── */
+#screen-chat{flex-direction:column}
+.chat-header{position:sticky;top:0;z-index:10;background:rgba(8,6,16,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.chat-persona-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.chat-persona-name{font-family:'Playfair Display',serif;font-size:15px;color:#fff;font-weight:700}
+.chat-persona-type{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase}
+.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn-avaliar{background:rgba(91,45,142,.25);border:1px solid rgba(200,150,14,.3);border-radius:8px;padding:6px 14px;color:var(--gold);font-size:12px;cursor:pointer;font-family:'Lato',sans-serif;letter-spacing:1px;font-weight:700;transition:all .2s}
+.btn-avaliar:hover{background:rgba(91,45,142,.45)}
+.score-badge{padding:4px 14px;border-radius:20px;font-size:13px;font-weight:800}
+.messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px}
+.msg-row{display:flex;gap:10px}
+.msg-row.user{justify-content:flex-end}
+.msg-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;align-self:flex-end}
+.msg-user-av{background:rgba(91,45,142,.3);border:1px solid rgba(200,150,14,.3);font-size:13px;font-weight:800;color:var(--gold)}
+.bubble{max-width:78%;padding:12px 15px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.bubble-bot{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px 16px 16px 4px;color:#ddd8f0;font-family:'Playfair Display',serif;font-size:13.5px}
+.bubble-user{background:linear-gradient(135deg,var(--wine),var(--wine2));border-radius:16px 16px 4px 16px;color:#f0e8ff;font-weight:600}
+.bubble-cmd{background:rgba(200,150,14,.1);border:1px solid rgba(200,150,14,.25);border-radius:16px 16px 4px 16px;color:var(--gold);font-style:italic}
+.typing{display:flex;gap:6px;align-items:center;padding:14px 18px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pulse 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
+.chat-input-area{padding:12px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.4);backdrop-filter:blur(10px);display:flex;gap:10px;flex-shrink:0}
+.chat-input{flex:1;padding:13px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px;outline:none;font-family:'Lato',sans-serif;transition:border-color .2s}
+.chat-input:focus{border-color:rgba(91,45,142,.6)}
+.chat-input::placeholder{color:#4a3a6a}
+.chat-input:disabled{opacity:.5}
+.btn-send{width:46px;height:46px;border-radius:10px;border:none;font-size:20px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.btn-send:not(:disabled){background:linear-gradient(135deg,var(--wine),var(--wine2));color:#f0e8ff}
+.btn-send:disabled{background:rgba(91,45,142,.15);color:#5a3a8a;cursor:not-allowed}
+.ended-bar{padding:16px 20px;border-top:1px solid var(--border);background:rgba(0,0,0,.4);backdrop-filter:blur(10px)}
+.btn-restart{width:100%;padding:13px;background:linear-gradient(135deg,var(--wine),var(--wine2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Lato',sans-serif}
+.loading-state{text-align:center;padding:60px 20px}
+.loading-state .big-emoji{font-size:40px;margin-bottom:14px}
+.loading-state p{font-size:12px;letter-spacing:4px;color:#6a4a9a}
+
+@media(max-width:480px){.logo-rio{font-size:42px}.bubble{max-width:88%}.mode-cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<!-- ══ PASSWORD GATE ══ -->
+<div id="screen-apikey" class="screen active">
+  <div class="apikey-inner" style="position:relative;z-index:1">
+    <div class="logo-mark">
+      <div class="logo-del">— de —</div>
+      <div class="logo-rio">DelRio</div>
+      <div class="logo-divline"></div>
+      <div class="logo-tagline">Plataforma de Treinamento</div>
+    </div>
+    <div class="apikey-note" style="text-align:center;font-size:14px;color:#c8a0f0">
+      🔒 Acesso restrito à equipe DelRio
+    </div>
+    <label class="field-label">Senha de acesso</label>
+    <input id="input-password" class="field-input" type="password" placeholder="Digite a senha..." autocomplete="off"/>
+    <div id="pw-error" style="color:#f08080;font-size:12px;margin-top:8px;display:none">Senha incorreta. Tente novamente.</div>
+    <button class="btn-primary" onclick="checkPassword()">Entrar →</button>
+  </div>
+</div>
+
+<!-- ══ INTRO ══ -->
+<div id="screen-intro" class="screen">
+  <div class="intro-inner" style="position:relative;z-index:1">
+    <div class="logo-mark">
+      <div class="logo-del">— de —</div>
+      <div class="logo-rio">DelRio</div>
+      <div class="logo-divline"></div>
+      <div class="logo-tagline">Moda Íntima · Desde 1963</div>
+    </div>
+    <div class="intro-subtitle">Plataforma de Treinamento</div>
+    <div class="name-section">
+      <label class="field-label">Seu nome</label>
+      <input id="input-name" class="field-input" type="text" placeholder="Ex: Juliana" autocomplete="off"/>
+    </div>
+    <div class="mode-cards">
+      <div class="mode-card wine" onclick="startMode('sim')">
+        <div class="mc-icon">🎭</div>
+        <div class="mc-title">Simulação</div>
+        <div class="mc-desc">Atenda clientes reais e receba avaliação com pontuação</div>
+      </div>
+      <div class="mode-card gold-c" onclick="startMode('quiz')">
+        <div class="mc-icon">🧠</div>
+        <div class="mc-title">Quiz</div>
+        <div class="mc-desc">10 perguntas sobre os 6 Passos e o Manual de Operações</div>
+      </div>
+    </div>
+    <p class="hint">Escolha um modo acima. Na simulação, use <strong>/avaliar</strong> para receber feedback com pontuação.</p>
+  </div>
+</div>
+
+<!-- ══ CHOOSE PERSONA ══ -->
+<div id="screen-choose" class="screen">
+  <div class="choose-inner">
+    <div class="top-bar">
+      <button class="btn-back" onclick="goTo('intro')">←</button>
+      <div>
+        <div class="top-sub">Simulação de Atendimento</div>
+        <div class="top-title" id="choose-greeting">Escolha a cliente</div>
+      </div>
+    </div>
+    <p class="section-desc">Cada perfil representa um tipo real de cliente DelRio. Escolha e inicie o atendimento como se estivesse no chão de loja.</p>
+    <div id="persona-list"></div>
+  </div>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-inner">
+    <div class="top-bar">
+      <button class="btn-back" onclick="goTo('intro')">←</button>
+      <div>
+        <div class="top-sub">Quiz DelRio</div>
+        <div class="top-title" id="quiz-greeting">Teste seu conhecimento</div>
+      </div>
+    </div>
+    <div id="quiz-q-view">
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-prog"></div></div>
+      <div class="quiz-q-num" id="quiz-qnum"></div>
+      <div class="quiz-question" id="quiz-qtext"></div>
+      <div class="quiz-category" id="quiz-qcat"></div>
+      <div class="quiz-options" id="quiz-opts"></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Próxima →</button>
+    </div>
+    <div id="quiz-result-view" style="display:none">
+      <div class="quiz-result">
+        <div class="result-score-ring" id="res-ring">
+          <div class="result-score-num" id="res-num"></div>
+          <div class="result-score-denom">/ 10</div>
+        </div>
+        <div class="result-title" id="res-title"></div>
+        <div class="result-msg" id="res-msg"></div>
+        <div class="result-breakdown" id="res-breakdown"></div>
+        <button class="btn-quiz-again" onclick="startQuiz()">Jogar novamente →</button>
+        <button class="btn-quiz-home" onclick="goTo('intro')">← Voltar ao início</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHAT ══ -->
+<div id="screen-chat" class="screen">
+  <div class="chat-header">
+    <button class="btn-back" onclick="goTo('choose')">←</button>
+    <div class="chat-persona-icon" id="chat-persona-icon"></div>
+    <div>
+      <div class="chat-persona-name" id="chat-persona-name"></div>
+      <div class="chat-persona-type" id="chat-persona-type"></div>
+    </div>
+    <div class="header-actions">
+      <div id="score-badge" class="score-badge" style="display:none"></div>
+      <button class="btn-avaliar" onclick="requestEval()">Avaliar</button>
+    </div>
+  </div>
+  <div class="messages" id="messages"></div>
+  <div class="chat-input-area" id="input-area">
+    <input id="chat-input" class="chat-input" type="text" placeholder="Responda como se estivesse na loja..."/>
+    <button class="btn-send" id="btn-send" disabled onclick="sendMessage()">→</button>
+  </div>
+  <div class="ended-bar" id="ended-bar" style="display:none">
+    <button class="btn-restart" onclick="goTo('choose')">Treinar com outra cliente →</button>
+  </div>
+</div>
+
+<script>
+// ─── API KEY ─────────────────────────────────────────
+const API_KEY = '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';
+const ACCESS_PASSWORD = 'delrio2025';
+
+// ─── STATE ───────────────────────────────────────────
+const S = { userName:'', persona:null, messages:[], loading:false, ended:false };
+
+// ─── PERSONAS ────────────────────────────────────────
+const PERSONAS = [
+  {id:'ana',nome:'Ana',idade:'35 anos',tipo:'Consumidora Final',
+   desc:'Entrou por curiosidade. Quer comprar para si, nunca ouviu falar da DelRio.',
+   desafio:'Frieza inicial, desconfiança',emoji:'👜',dif:'Médio',
+   cor:'#e8a0d0',difCor:'#f0c060'},
+  {id:'carla',nome:'Carla',idade:'28 anos',tipo:'Busca Renda Extra',
+   desc:'Professora que quer complementar a renda. Insegura e com medo de não vender.',
+   desafio:'Objeções emocionais, muitas dúvidas',emoji:'✏️',dif:'Médio',
+   cor:'#a0b0e8',difCor:'#f0c060'},
+  {id:'fernanda',nome:'Fernanda',idade:'42 anos',tipo:'Revendedora',
+   desc:'Já vende outras marcas há 5 anos. Objetiva, quer saber de margem e giro.',
+   desafio:'Perguntas técnicas, pouca paciência',emoji:'💼',dif:'Difícil',
+   cor:'#c8a0e8',difCor:'#f08060'},
+  {id:'patricia',nome:'Patrícia',idade:'38 anos',tipo:'Empreendedora',
+   desc:'Tem loja própria e equipe de consultoras. Quer volume e condições especiais.',
+   desafio:'Negocia tudo, testa os limites',emoji:'🏪',dif:'Expert',
+   cor:'#a0e0c0',difCor:'#c060f0'},
+];
+
+// ─── QUIZ BANK ───────────────────────────────────────
+const QUIZ_BANK = [
+  {q:"Qual é a frase de abertura PROIBIDA no Jeito DelRio de atender?",opts:["Bom dia, seja bem-vinda!","Posso ajudar?","Como posso te ajudar hoje?","Aceita um café ou água?"],correct:1,cat:"6 Passos — Abertura",exp:"'Posso ajudar?' está explicitamente proibido. O atendimento deve começar com uma linha de abertura empática, como elogios ou comentários sobre o dia."},
+  {q:"Ao abordar uma cliente nova, qual o posicionamento correto do vendedor?",opts:["Na porta, de frente para a cliente","Lateralmente, para não ser uma barreira","Atrás do balcão, esperando a cliente se aproximar","No centro da loja, em destaque"],correct:1,cat:"6 Passos — Abertura",exp:"O vendedor deve se posicionar lateralmente, para que não seja uma barreira entre a cliente e o interior da loja."},
+  {q:"O script de abertura para cliente recorrente inclui qual diferencial?",opts:["Apresentação do nome do vendedor","Oferta de café ou água e 'sentimos sua falta'","Perguntas sobre renda e objetivos","Mini tour pela loja"],correct:1,cat:"6 Passos — Abertura",exp:"Para cliente recorrente: 'Olá! Bom dia/tarde, seja bem-vinda, sentimos sua falta, que bom te receber hoje! Aceita um café ou água?'"},
+  {q:"Na etapa de Sondagem, qual pergunta-chave deve revelar o perfil da cliente?",opts:["Você já revende alguma marca?","Quanto pretende investir hoje?","Como posso te ajudar hoje?","Conhece a história da DelRio?"],correct:2,cat:"6 Passos — Sondagem",exp:"A pergunta 'Como posso te ajudar hoje?' permite que a cliente discorra naturalmente sobre seu objetivo, revelando em qual dos 4 perfis se encaixa."},
+  {q:"Durante a sondagem, o vendedor deve fazer uma 'mini tour'. Onde ela termina?",opts:["Na vitrine da loja","No equipamento colmeia, com assentos e bancada","No caixa","Na área de saldo"],correct:1,cat:"6 Passos — Sondagem",exp:"A mini tour percorre toda a loja e termina no equipamento colmeia, onde há assentos e bancada para o atendimento prosseguir."},
+  {q:"Qual a margem de lucro que as consultoras DelRio podem alcançar?",opts:["Até 30%","Até 50%","Até 80%","Até 60%"],correct:2,cat:"6 Passos — Solucionar",exp:"Consultoras DelRio lucram até 80% de margem, enquanto outros segmentos como cosméticos projetam apenas 30%."},
+  {q:"Qual o valor mínimo de investimento para abrir cadastro na DelRio?",opts:["R$ 500,00","R$ 750,00","R$ 1.000,00","R$ 2.000,00"],correct:2,cat:"6 Passos — Solucionar",exp:"Com apenas R$ 1.000,00 a cliente já pode abrir o cadastro e começar a empreender com a DelRio."},
+  {q:"Quando a cliente diz 'tenho medo de não conseguir vender', qual a abordagem correta?",opts:["Ignorar a objeção e seguir para o fechamento","Discordar e listar os benefícios imediatamente","Ouvir com empatia, validar o sentimento e sugerir começar com família e amigos","Oferecer um desconto especial para convencê-la"],correct:2,cat:"6 Passos — Objeções",exp:"O fluxo é: Ouvir → Empatia → Benefício → Solução → Confirmar. Nunca discutir. Sugerir começar com o círculo próximo dá segurança à nova cliente."},
+  {q:"Como deve ser conduzido o fechamento da venda, segundo o Passo 5?",opts:["Com urgência e pressão para não perder a venda","De forma natural, como consequência de um bom atendimento","Oferecendo desconto extra para garantir a decisão","Com perguntas fechadas de sim ou não"],correct:1,cat:"6 Passos — Fechamento",exp:"O fechamento deve ser conduzido de forma natural, sem pressão. É a consequência de um atendimento bem conduzido, com celebração ao final."},
+  {q:"Qual ação de pós-venda deve ser feita no mesmo dia da compra?",opts:["Ligar para oferecer novos produtos","Enviar mensagem de agradecimento personalizada","Convidar para o grupo de WhatsApp","Solicitar avaliação online"],correct:1,cat:"6 Passos — Pós-venda",exp:"O Passo 6 orienta enviar uma mensagem de agradecimento personalizada no mesmo dia da venda, iniciando a relação de fidelização."},
+  {q:"Qual o percentual máximo de troca permitido sobre a compra original?",opts:["10%","20%","30%","50%"],correct:2,cat:"Manual — Política de Trocas",exp:"É permitida troca de no máximo 30% da compra original, dentro do prazo estabelecido e com nota fiscal."},
+  {q:"Qual o prazo para solicitar troca de produtos na DelRio?",opts:["30 dias corridos","45 dias corridos / até o último dia útil do mês seguinte","60 dias corridos","Somente na semana da compra"],correct:1,cat:"Manual — Política de Trocas",exp:"A troca pode ser solicitada em até 45 dias corridos, mediante apresentação da nota fiscal obrigatória."},
+  {q:"Pagamentos à vista via PIX, débito ou dinheiro têm qual benefício?",opts:["Parcelamento em até 3x","5% de desconto","10% de desconto","Brinde exclusivo"],correct:2,cat:"Manual — Política Comercial",exp:"Pagamentos à vista no PIX, débito ou dinheiro têm 10% de desconto conforme a política de parcelamentos da DelRio."},
+  {q:"Qual é PROIBIDO em relação a pagamentos via PIX?",opts:["Pagamento via QR Code em loja","Transações para contas pessoais de colaboradores","Parcelamento via PIX","Envio de link de pagamento"],correct:1,cat:"Manual — Política Comercial",exp:"É expressamente proibido que transações via PIX sejam realizadas para contas pessoais de colaboradores."},
+  {q:"A partir de quantos dias sem compra o cliente passa a ser considerado inativo?",opts:["60 dias","90 dias","120 dias","30 dias"],correct:1,cat:"Manual — Gestão de Carteira",exp:"Até o 90º dia o cliente é ativo. A partir do 91º dia torna-se inativo e pode receber contato da operação digital."},
+  {q:"O que acontece com clientes acima de 120 dias sem positivação?",opts:["São excluídos do sistema","São redistribuídos uniformemente entre os vendedores","Passam para o CRM exclusivamente","Ficam na carteira do gerente"],correct:1,cat:"Manual — Gestão de Carteira",exp:"Clientes acima de 120 dias sem positivação são redistribuídos uniformemente pela equipe de vendedores de maneira automática e compulsória."},
+  {q:"Qual é a sequência correta de exposição de produtos nas colmeias?",opts:["Calcinhas em cima, sutiãs embaixo","Caixas em cima, bolsas embaixo","Bolsas em cima, caixas embaixo","Novidades em cima, saldo embaixo"],correct:1,cat:"Manual — Visual Merchandising",exp:"A exposição nas colmeias deve ser: Caixas (em cima) e Bolsas (embaixo), sempre organizadas por categoria."},
+  {q:"Onde devem ser posicionados os produtos em saldo na exposição de parede?",opts:["Na entrada da loja","No centro da loja","No fundo da loja, próximo ao caixa","No balcão de atendimento"],correct:2,cat:"Manual — Visual Merchandising",exp:"Produtos em saldo ficam no fundo da loja, próximo ao caixa, organizados por tipo, degradê de cor e sempre com preço identificado."},
+  {q:"Quantas vezes ao dia o Aroma DelRio deve ser aplicado?",opts:["1 vez","2 vezes","3 vezes","Apenas na abertura"],correct:2,cat:"Manual — Visual Merchandising",exp:"Todas as lojas devem aplicar o Aroma DelRio diariamente 3 vezes ao dia, cobrindo todo o espaço de atendimento."},
+  {q:"O vendedor que atinge entre 110% e 119,99% da meta recebe qual comissão?",opts:["0,5%","1,0%","1,1%","1,2%"],correct:2,cat:"Manual — Comissionamento",exp:"A faixa de 110% a 119,99% corresponde a 1,1% de comissão. Se a loja atingir 100% da meta coletiva, o vendedor ganha +0,2%."},
+  {q:"Qual é a duração máxima de uma reserva de produto via sistema?",opts:["24 horas","48 horas","72 horas","7 dias"],correct:1,cat:"Manual — Operações",exp:"Reservas devem ser feitas via sistema com duração de 48 horas. Nenhum produto pode sair da loja sem emissão de NF."},
+  {q:"O alinhamento diário de loja deve ter qual duração?",opts:["5 a 10 minutos","15 a 20 minutos","30 a 40 minutos","1 hora"],correct:1,cat:"Manual — Ritos de Gestão",exp:"O alinhamento diário deve ter 15 a 20 minutos e cobrir resultados D-1, metas do dia e avisos corporativos."},
+  {q:"Qual metodologia é usada nas reuniões gerenciais para análise de desvios?",opts:["SWOT","OKR","FCA — Fatos, Causas e Ações","5W2H"],correct:2,cat:"Manual — Ritos de Gestão",exp:"O método FCA (Fatos, Causas e Ações) é adotado em todas as reuniões gerenciais semanais e mensais."},
+  {q:"Qual o percentual do FATOR COLETIVO quando a loja atinge 100% da meta?",opts:["+0,1%","+0,2%","+0,5%","+1,0%"],correct:1,cat:"Manual — Comissionamento",exp:"Caso a loja atinja 100% da meta, todos os vendedores ganham +0,2% de comissão como reconhecimento pelo trabalho em equipe."},
+  {q:"Na região Nordeste, a partir de qual valor a compra tem frete grátis?",opts:["R$ 800,00","R$ 1.000,00","R$ 1.200,00","R$ 1.500,00"],correct:2,cat:"Manual — Política de Frete",exp:"Para o Nordeste, frete grátis padrão se aplica a compras a partir de R$ 1.200,00, limitado a 5% do valor do pedido."},
+];
+
+// ─── QUIZ STATE ──────────────────────────────────────
+let QS = { questions:[], idx:0, score:0, answered:false, catScores:{} };
+
+function shuffle(a){ return a.sort(()=>Math.random()-.5) }
+
+function startQuiz(){
+  QS.questions=shuffle([...QUIZ_BANK]).slice(0,10);
+  QS.idx=0; QS.score=0; QS.answered=false; QS.catScores={};
+  document.getElementById('quiz-q-view').style.display='block';
+  document.getElementById('quiz-result-view').style.display='none';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=QS.questions[QS.idx], tot=QS.questions.length;
+  document.getElementById('quiz-prog').style.width=`${(QS.idx/tot)*100}%`;
+  document.getElementById('quiz-qnum').textContent=`Pergunta ${QS.idx+1} de ${tot}`;
+  document.getElementById('quiz-qtext').textContent=q.q;
+  document.getElementById('quiz-qcat').textContent=q.cat;
+  const fb=document.getElementById('quiz-feedback');
+  fb.className='quiz-feedback'; fb.textContent='';
+  document.getElementById('btn-next').style.display='none';
+  QS.answered=false;
+  const opts=document.getElementById('quiz-opts');
+  opts.innerHTML='';
+  shuffle([0,1,2,3]).forEach(origIdx=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-opt'; btn.textContent=q.opts[origIdx]; btn.dataset.orig=origIdx;
+    btn.onclick=()=>selectOpt(btn,origIdx===q.correct,q);
+    opts.appendChild(btn);
+  });
+}
+
+function selectOpt(btn,isCorrect,q){
+  if(QS.answered) return;
+  QS.answered=true;
+  document.querySelectorAll('.quiz-opt').forEach(b=>{
+    b.disabled=true;
+    if(parseInt(b.dataset.orig)===q.correct) b.classList.add('reveal');
+  });
+  const cat=q.cat.split('—')[0].trim();
+  QS.catScores[cat]=QS.catScores[cat]||{c:0,t:0};
+  QS.catScores[cat].t++;
+  const fb=document.getElementById('quiz-feedback');
+  if(isCorrect){
+    btn.classList.add('correct'); btn.classList.remove('reveal');
+    QS.score++; QS.catScores[cat].c++;
+    fb.className='quiz-feedback ok show';
+    fb.textContent='✓ Correto! '+q.exp;
+  } else {
+    btn.classList.add('wrong');
+    fb.className='quiz-feedback err show';
+    fb.textContent='✗ Incorreto. '+q.exp;
+  }
+  const nb=document.getElementById('btn-next');
+  nb.style.display='block';
+  nb.textContent=QS.idx<QS.questions.length-1?'Próxima →':'Ver resultado →';
+}
+
+function nextQuestion(){
+  QS.idx++;
+  if(QS.idx>=QS.questions.length){ showResult(); return; }
+  renderQuestion();
+}
+
+function showResult(){
+  document.getElementById('quiz-q-view').style.display='none';
+  document.getElementById('quiz-result-view').style.display='block';
+  const s=QS.score,t=QS.questions.length,pct=s/t;
+  const color=pct>=.8?'#60d080':pct>=.6?'#f0c060':'#f06060';
+  const ring=document.getElementById('res-ring');
+  ring.style.borderColor=color; ring.style.background=color+'18';
+  document.getElementById('res-num').style.color=color;
+  document.getElementById('res-num').textContent=s;
+  const titles=['Precisa Treinar Mais','Em Desenvolvimento','Bom Resultado!','Muito Bom!','Especialista DelRio!'];
+  const msgs=['Revise o Manual de Operações e os 6 Passos. A prática leva à perfeição!','Bom começo! Foque nas categorias com mais erros e tente novamente.','Você está no caminho certo. Mais um treino e chega ao topo!','Excelente! Seu conhecimento está sólido. Partiu 10?','Parabéns! Você domina o Jeito DelRio de operar. Continue assim!'];
+  const ti=pct<.4?0:pct<.6?1:pct<.7?2:pct<.9?3:4;
+  document.getElementById('res-title').textContent=titles[ti];
+  document.getElementById('res-msg').textContent=msgs[ti];
+  const br=document.getElementById('res-breakdown');
+  br.innerHTML=`<div class="rb-row"><span class="rb-label">Acertos</span><span class="rb-val" style="color:${color}">${s} / ${t}</span></div>`;
+  Object.entries(QS.catScores).forEach(([cat,v])=>{
+    const c2=v.c===v.t?'#60d080':v.c>0?'#f0c060':'#f06060';
+    br.innerHTML+=`<div class="rb-row"><span class="rb-label">${cat}</span><span class="rb-val" style="color:${c2}">${v.c}/${v.t}</span></div>`;
+  });
+  document.getElementById('quiz-prog').style.width='100%';
+}
+
+// ─── NAV ─────────────────────────────────────────────
+function goTo(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ─── INTRO ───────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  if(sessionStorage.getItem('delrio_auth')==='ok') goTo('intro');
+});
+
+function checkPassword(){
+  const v = document.getElementById('input-password').value.trim();
+  const err = document.getElementById('pw-error');
+  if(v === ACCESS_PASSWORD){
+    sessionStorage.setItem('delrio_auth','ok');
+    goTo('intro');
+  } else {
+    err.style.display='block';
+    document.getElementById('input-password').value='';
+    document.getElementById('input-password').focus();
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp = document.getElementById('input-password');
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter') checkPassword(); });
+});
+
+const iName=document.getElementById('input-name');
+iName.addEventListener('keydown',e=>{ if(e.key==='Enter'&&iName.value.trim()) startMode('sim'); });
+
+function startMode(mode){
+  S.userName=iName.value.trim();
+  if(!S.userName){ iName.focus(); iName.style.borderColor='rgba(91,45,142,.8)'; return; }
+  if(mode==='quiz'){
+    document.getElementById('quiz-greeting').textContent=`Olá, ${S.userName}!`;
+    startQuiz(); goTo('quiz');
+  } else {
+    document.getElementById('choose-greeting').textContent=`Olá, ${S.userName}! Escolha a cliente`;
+    renderPersonas(); goTo('choose');
+  }
+}
+
+// ─── PERSONAS ────────────────────────────────────────
+function renderPersonas(){
+  const list=document.getElementById('persona-list');
+  list.innerHTML='';
+  PERSONAS.forEach(p=>{
+    const card=document.createElement('button');
+    card.className='persona-card';
+    card.innerHTML=`
+      <div class="persona-icon" style="background:${p.cor}22;border:1px solid ${p.cor}44">${p.emoji}</div>
+      <div class="persona-info">
+        <div class="persona-header">
+          <span class="persona-name">${p.nome}</span>
+          <span class="persona-age">${p.idade}</span>
+          <span class="badge-dif" style="background:${p.difCor}22;border:1px solid ${p.difCor}55;color:${p.difCor}">${p.dif}</span>
+        </div>
+        <div class="persona-type">${p.tipo}</div>
+        <div class="persona-desc">${p.desc}</div>
+        <div class="persona-challenge">⚡ ${p.desafio}</div>
+      </div>`;
+    card.addEventListener('click',()=>startChat(p));
+    list.appendChild(card);
+  });
+}
+
+// ─── CHAT ────────────────────────────────────────────
+function buildSystem(){
+  return `Você é um Assistente de Treinamento da DelRio — maior fabricante de moda íntima do Brasil, fundada em 1963 em Fortaleza. Sua função é conduzir simulações de atendimento (roleplay) para treinar colaboradores.
+
+MODO: ROLEPLAY PURO
+Durante o roleplay você É A CLIENTE. Não quebre o personagem. Reaja como uma mulher real. Só saia do personagem quando o colaborador escrever /avaliar ou /parar, ou quando a venda for concluída naturalmente.
+
+━━━ AS 4 PERSONAS ━━━
+
+ANA — Consumidora Final, 35 anos
+Entrou por curiosidade, nunca ouviu falar da DelRio.
+Comportamento: educada mas fria, aquece com conexão genuína.
+Objeções: "tá caro", "vou pensar", "vou ver em outro lugar".
+Se o vendedor usar "Posso ajudar?" — responda friamente "Não, obrigada".
+
+CARLA — Busca Renda Extra, 28 anos, professora
+Medo de não conseguir vender, muitas dúvidas.
+Comportamento: ansiosa, precisa de segurança emocional.
+Objeções: "não sei vender", "não tenho tempo", "e se não vender?".
+
+FERNANDA — Revendedora, 42 anos, vende há 5 anos
+Objetiva, testa o vendedor com perguntas técnicas.
+Comportamento: firme, profissional, pouca paciência.
+Pergunta: "qual a margem? qual o giro? qual o pedido mínimo?"
+
+PATRÍCIA — Empreendedora, 38 anos, tem loja própria
+Quer volume e condições especiais, negocia tudo.
+Comportamento: dominante, segura.
+Objeções: "preciso de prazo maior", "quero desconto no volume".
+
+━━━ OS 6 PASSOS DELRIO ━━━
+
+PASSO 1 — ABERTURA
+✔ Ir até a cliente, posicionar-se lateralmente
+✔ Linhas de abertura: elogio, clima, acontecimentos — NUNCA política/futebol/religião
+✔ NUNCA "Posso ajudar?" ou "Quer uma ajuda?"
+✔ Script novo: "Olá! Bom dia/tarde, seja bem-vinda! Me chamo ___, que bom receber você! Como se chama?"
+✔ Script recorrente: "Olá! Seja bem-vinda, sentimos sua falta! Aceita um café ou água?"
+
+PASSO 2 — SONDAGEM
+✔ Sempre perguntas abertas
+✔ Identificar perfil: Consumidora Final / Renda Extra / Revendedora / Empreendedora
+✔ Mini tour pela loja terminando no equipamento colmeia
+✔ Prova social: "A DelRio é brasileira, 60 anos, maior fabricante de moda íntima do Brasil, nasceu no Ceará"
+✔ Pergunta-chave: "Como posso te ajudar hoje?"
+
+PASSO 3 — SOLUCIONAR
+✔ Vender independência financeira, não apenas lingerie
+✔ Diferenciais: maior fabricante do Brasil, fabrica para Calvin Klein/Adidas/Aramis, margem até 80% (cosméticos = 30%), com R$1.000 já começa
+✔ Usar casos de sucesso de consultoras
+✔ Montar kit inicial com best-sellers
+
+PASSO 4 — OBJEÇÕES
+✔ NUNCA discutir — Ouvir → Empatia → Benefício → Solução → Confirmar
+✔ "Não tenho dinheiro": kit menor, crescer com os lucros
+✔ "Medo de não vender": começar com família/amigos
+✔ "Já trabalho com outra marca": diversificação, 80% vs 30%
+
+PASSO 5 — FECHAMENTO
+✔ Natural, sem pressão — "Posso registrar seu cadastro agora?"
+✔ Celebrar: "Tenho certeza que vai arrasar!"
+
+PASSO 6 — PÓS-VENDA
+✔ Mensagem de agradecimento no mesmo dia
+✔ Acompanhar após alguns dias
+✔ Convidar para grupos e treinamentos
+
+━━━ CONDUÇÃO DO ROLEPLAY ━━━
+- Comece com ações físicas entre asteriscos: *(entra na loja olhando as araras)*
+- Se usar "Posso ajudar?" — reaja com frieza total
+- Se pular etapas — fique na defensiva
+- Se o atendimento for excelente — demonstre abertura crescente
+
+━━━ AVALIAÇÃO (após /avaliar) ━━━
+Use este formato EXATO:
+
+🏆 AVALIAÇÃO — [nome]
+━━━━━━━━━━━━━━━━━━━━━
+Passo 1 – Abertura:     [X]/10
+Passo 2 – Sondagem:     [X]/10
+Passo 3 – Solução:      [X]/10
+Passo 4 – Objeções:     [X]/10
+Passo 5 – Fechamento:   [X]/10
+Passo 6 – Pós-venda:    [X]/10
+━━━━━━━━━━━━━━━━━━━━━
+MÉDIA GERAL: [X]/10
+
+✅ PONTOS FORTES:
+[2 elogios específicos com exemplos reais]
+
+🎯 PARA MELHORAR:
+[1-2 pontos com exemplo de como fazer melhor]
+
+💬 DICA DO DIA:
+[Uma dica prática e motivadora]
+
+Sempre responda em português.`;
+}
+
+async function startChat(p){
+  S.persona=p; S.messages=[]; S.loading=false; S.ended=false;
+  const icon=document.getElementById('chat-persona-icon');
+  icon.textContent=p.emoji; icon.style.background=`${p.cor}22`; icon.style.border=`1px solid ${p.cor}44`;
+  document.getElementById('chat-persona-name').textContent=p.nome;
+  document.getElementById('chat-persona-type').textContent=p.tipo.toUpperCase();
+  document.getElementById('score-badge').style.display='none';
+  document.getElementById('input-area').style.display='flex';
+  document.getElementById('ended-bar').style.display='none';
+  const msgs=document.getElementById('messages');
+  msgs.innerHTML=`<div class="loading-state"><div class="big-emoji">${p.emoji}</div><p>CLIENTE ENTRANDO NA LOJA...</p></div>`;
+  goTo('chat');
+  const init=`Inicie o roleplay agora. Você é ${p.nome}, ${p.idade} — ${p.desc}. O colaborador se chama ${S.userName}. Comece naturalmente: entre na loja como esta personagem. Use ações entre asteriscos *(ação)*. Não explique que é roleplay. Seja realista desde o primeiro segundo.`;
+  const reply=await callAPI([{role:'user',content:init}]);
+  msgs.innerHTML='';
+  S.messages=[{role:'assistant',content:reply}];
+  renderMsg({role:'assistant',content:reply});
+  enableInput();
+}
+
+function enableInput(){
+  const inp=document.getElementById('chat-input'),btn=document.getElementById('btn-send');
+  inp.disabled=false; inp.placeholder='Responda como se estivesse na loja...';
+  inp.onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} };
+  inp.oninput=()=>{ btn.disabled=!inp.value.trim()||S.loading; };
+  inp.focus();
+}
+
+async function sendMessage(){
+  const inp=document.getElementById('chat-input'),text=inp.value.trim();
+  if(!text||S.loading) return;
+  inp.value=''; document.getElementById('btn-send').disabled=true;
+  const isEval=text.toLowerCase().includes('/avaliar')||text.toLowerCase().includes('/parar');
+  renderMsg({role:'user',content:text});
+  S.messages.push({role:'user',content:text});
+  const apiContent=isEval?`${text}\n\n(Saia do personagem e faça a avaliação completa de ${S.userName} usando o formato definido.)`:text;
+  const apiMsgs=[...S.messages.slice(0,-1),{role:'user',content:apiContent}];
+  showTyping();
+  const reply=await callAPI(apiMsgs);
+  hideTyping();
+  S.messages.push({role:'assistant',content:reply});
+  renderMsg({role:'assistant',content:reply});
+  if(isEval||reply.includes('MÉDIA GERAL')) endSession(reply);
+}
+
+async function requestEval(){
+  if(S.loading||S.ended) return;
+  const ev=`/avaliar\n\n(Saia do personagem e faça a avaliação completa de ${S.userName} usando o formato definido.)`;
+  renderMsg({role:'user',content:'/avaliar'});
+  S.messages.push({role:'user',content:'/avaliar'});
+  showTyping();
+  const reply=await callAPI([...S.messages.slice(0,-1),{role:'user',content:ev}]);
+  hideTyping();
+  S.messages.push({role:'assistant',content:reply});
+  renderMsg({role:'assistant',content:reply});
+  endSession(reply);
+}
+
+function endSession(reply){
+  S.ended=true;
+  document.getElementById('input-area').style.display='none';
+  document.getElementById('ended-bar').style.display='block';
+  const m=reply.match(/MÉDIA GERAL[:\s]+([0-9]+(?:[.,][0-9]+)?)\s*\/\s*10/i);
+  if(m){
+    const sc=parseFloat(m[1].replace(',','.'));
+    const c=sc>=8?'#60d080':sc>=6?'#f0c060':'#f06060';
+    const b=document.getElementById('score-badge');
+    b.style.display=''; b.style.background=`${c}22`; b.style.border=`1px solid ${c}55`; b.style.color=c;
+    b.textContent=`${sc}/10`;
+  }
+}
+
+function renderMsg({role,content}){
+  const msgs=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.className=`msg-row ${role==='user'?'user':''}`;
+  const isCmd=content.startsWith('/');
+  const init=(S.userName[0]||'V').toUpperCase();
+  if(role==='assistant'){
+    const p=S.persona;
+    row.innerHTML=`<div class="msg-avatar" style="background:${p.cor}22;border:1px solid ${p.cor}44;font-size:15px">${p.emoji}</div><div class="bubble bubble-bot">${esc(content)}</div>`;
+  } else {
+    row.innerHTML=`<div class="bubble ${isCmd?'bubble-cmd':'bubble-user'}">${esc(content)}</div><div class="msg-avatar msg-user-av">${init}</div>`;
+  }
+  msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+let typingEl=null;
+function showTyping(){
+  S.loading=true; document.getElementById('btn-send').disabled=true;
+  const msgs=document.getElementById('messages');
+  typingEl=document.createElement('div'); typingEl.className='msg-row';
+  const p=S.persona;
+  typingEl.innerHTML=`<div class="msg-avatar" style="background:${p.cor}22;border:1px solid ${p.cor}44;font-size:15px">${p.emoji}</div><div class="bubble bubble-bot typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  msgs.appendChild(typingEl); msgs.scrollTop=msgs.scrollHeight;
+}
+function hideTyping(){ S.loading=false; if(typingEl){typingEl.remove();typingEl=null;} }
+function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+async function callAPI(messages){
+  if(!API_KEY) return 'Chave API não configurada. Recarregue a página.';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-client': 'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:buildSystem(),messages})
+    });
+    const d=await r.json();
+    if(d.error) return `Erro da API: ${d.error.message}`;
+    return d.content?.map(b=>b.text||'').join('')||'Sem resposta.';
+  }catch(e){ return 'Erro de conexão. Verifique sua internet e tente novamente.'; }
+}
+</script>
+</body>
+</html>
